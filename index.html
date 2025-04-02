@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MOHGCN-MOHE Fusion Model Architecture</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f8fafc;
+            color: #334155;
+        }
+        
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+            border-radius: 12px;
+            overflow-x: auto;
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #1e293b;
+            font-weight: 600;
+            font-size: 28px;
+        }
+        
+        .model-description {
+            margin-top: 30px;
+            padding: 20px;
+            border-top: 1px solid #e2e8f0;
+            color: #475569;
+            line-height: 1.6;
+        }
+        
+        .architecture-container {
+            width: 100%;
+            overflow-x: auto;
+            padding: 10px 0;
+        }
+        
+        /* SVG样式增强 */
+        svg text {
+            font-family: 'Segoe UI', Roboto, sans-serif;
+        }
+        
+        svg text[font-weight="bold"] {
+            font-weight: 600;
+        }
+        
+        /* 添加触摸时的交互效果 */
+        svg .interactive {
+            transition: all 0.2s ease;
+        }
+        
+        svg .interactive:hover {
+            filter: brightness(1.1);
+        }
+        
+        /* 分段式加载动画 */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .section-header {
+            margin-bottom: 15px;
+            font-size: 18px;
+            font-weight: 600;
+            color: #0f172a;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>MOHGCN-MOHE Multi-Omics Fusion Model</h1>
+        
+        <div class="architecture-container">
+            <svg width="1600" height="620" xmlns="http://www.w3.org/2000/svg">
+                <!-- Definitions for colors, gradients, markers -->
+                <defs>
+                    <!-- Color definitions with improved gradients -->
+                    <linearGradient id="mrna-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#4a77ba" />
+                        <stop offset="100%" stop-color="#c6d5ea" />
+                    </linearGradient>
+                    <linearGradient id="meth-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#76a975" />
+                        <stop offset="100%" stop-color="#c8e6c7" />
+                    </linearGradient>
+                    <linearGradient id="mirna-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#e67533" />
+                        <stop offset="100%" stop-color="#f9e5d2" />
+                    </linearGradient>
+                    
+                    <!-- Fusion gradient with improved colors -->
+                    <linearGradient id="fusion-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#4a77ba" />
+                        <stop offset="33%" stop-color="#76a975" />
+                        <stop offset="67%" stop-color="#e67533" />
+                        <stop offset="100%" stop-color="#7e22ce" />
+                    </linearGradient>
+                    
+                    <!-- 改进的箭头标记 -->
+                    <marker id="arrow" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+                        <polygon points="0 0, 10 3.5, 0 7" fill="#64748b" />
+                    </marker>
+                    
+                    <!-- 不同颜色的箭头标记 -->
+                    <marker id="arrow-blue" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+                        <polygon points="0 0, 10 3.5, 0 7" fill="#4a77ba" />
+                    </marker>
+                    
+                    <marker id="arrow-green" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+                        <polygon points="0 0, 10 3.5, 0 7" fill="#76a975" />
+                    </marker>
+                    
+                    <marker id="arrow-orange" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+                        <polygon points="0 0, 10 3.5, 0 7" fill="#e67533" />
+                    </marker>
+                    
+                    <marker id="arrow-purple" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+                        <polygon points="0 0, 10 3.5, 0 7" fill="#7e22ce" />
+                    </marker>
+                    
+                    <!-- 添加阴影效果 -->
+                    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+                        <feDropShadow dx="2" dy="2" stdDeviation="2" flood-opacity="0.3"/>
+                    </filter>
+                </defs>
+                
+                <!-- 添加整体分组背景 -->
+                <g class="section-background">
+                    <!-- 数据输入部分背景 -->
+                    <rect x="15" y="25" width="160" height="500" rx="10" ry="10" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1" />
+                    
+                    <!-- 数据处理部分背景 -->
+                    <rect x="195" y="25" width="260" height="500" rx="10" ry="10" fill="#f1f5f9" stroke="#e2e8f0" stroke-width="1" />
+                    
+                    <!-- 编码部分背景 -->
+                    <rect x="475" y="25" width="180" height="500" rx="10" ry="10" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1" />
+                    
+                    <!-- 特征分布部分背景 -->
+                    <rect x="675" y="25" width="160" height="500" rx="10" ry="10" fill="#f1f5f9" stroke="#e2e8f0" stroke-width="1" />
+                    
+                    <!-- 自注意力部分背景 -->
+                    <rect x="855" y="25" width="360" height="500" rx="10" ry="10" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1" />
+                    
+                    <!-- TCP部分背景 -->
+                    <rect x="1235" y="25" width="150" height="500" rx="10" ry="10" fill="#f1f5f9" stroke="#e2e8f0" stroke-width="1" />
+                    
+                    <!-- 最终预测部分背景 -->
+                    <rect x="1405" y="25" width="160" height="500" rx="10" ry="10" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1" />
+                </g>
+
+                <!-- 添加美观的部分标题 -->
+                <g class="section-titles">
+                    <text x="95" y="50" font-size="16" font-weight="bold" text-anchor="middle" fill="#334155">Multi-Omics Data</text>
+                    <text x="325" y="50" font-size="16" font-weight="bold" text-anchor="middle" fill="#334155">Data Processing</text>
+                    <text x="565" y="50" font-size="16" font-weight="bold" text-anchor="middle" fill="#334155">Multi-Omics Fusion Encoding</text>
+                    <text x="755" y="50" font-size="16" font-weight="bold" text-anchor="middle" fill="#334155">Feature Distribution</text>
+                    <text x="1035" y="50" font-size="16" font-weight="bold" text-anchor="middle" fill="#334155">Multi-Omics Self-Attention</text>
+                    <text x="1310" y="50" font-size="16" font-weight="bold" text-anchor="middle" fill="#334155">TCP</text>
+                    <text x="1485" y="50" font-size="16" font-weight="bold" text-anchor="middle" fill="#334155">Final Prediction</text>
+                </g>
+                
+                <!-- Section 1: Multi-Omics Data (优化样式) -->
+                <g transform="translate(30, 80)" class="interactive">
+                    <!-- mRNA expression matrix -->
+                    <g transform="translate(0, 0)">
+                        <text x="60" y="0" font-size="14" text-anchor="middle" fill="#4a77ba" font-weight="bold">mRNA expression</text>
+                        <rect x="10" y="10" width="100" height="100" fill="#ffffff" stroke="#4a77ba" stroke-width="1" rx="3" ry="3" filter="url(#shadow)" />
+                        
+                        <!-- Matrix cells with improved colors -->
+                        <g transform="translate(10, 10)">
+                            <rect x="0" y="0" width="20" height="20" fill="#4a77ba" rx="2" ry="2" />
+                            <rect x="20" y="0" width="20" height="20" fill="#c6d5ea" rx="2" ry="2" />
+                            <rect x="40" y="0" width="20" height="20" fill="#4a77ba" rx="2" ry="2" />
+                            <rect x="60" y="0" width="20" height="20" fill="#c6d5ea" rx="2" ry="2" />
+                            <rect x="80" y="0" width="20" height="20" fill="#4a77ba" rx="2" ry="2" />
+                            
+                            <rect x="0" y="20" width="20" height="20" fill="#c6d5ea" rx="2" ry="2" />
+                            <rect x="20" y="20" width="20" height="20" fill="#4a77ba" rx="2" ry="2" />
+                            <rect x="40" y="20" width="20" height="20" fill="#224079" rx="2" ry="2" />
+                            <rect x="60" y="20" width="20" height="20" fill="#4a77ba" rx="2" ry="2" />
+                            <rect x="80" y="20" width="20" height="20" fill="#c6d5ea" rx="2" ry="2" />
+                            
+                            <rect x="0" y="40" width="20" height="20" fill="#224079" rx="2" ry="2" />
+                            <rect x="20" y="40" width="20" height="20" fill="#c6d5ea" rx="2" ry="2" />
+                            <rect x="40" y="40" width="20" height="20" fill="#4a77ba" rx="2" ry="2" />
+                            <rect x="60" y="40" width="20" height="20" fill="#224079" rx="2" ry="2" />
+                            <rect x="80" y="40" width="20" height="20" fill="#c6d5ea" rx="2" ry="2" />
+                            
+                            <rect x="0" y="60" width="20" height="20" fill="#4a77ba" rx="2" ry="2" />
+                            <rect x="20" y="60" width="20" height="20" fill="#224079" rx="2" ry="2" />
+                            <rect x="40" y="60" width="20" height="20" fill="#c6d5ea" rx="2" ry="2" />
+                            <rect x="60" y="60" width="20" height="20" fill="#4a77ba" rx="2" ry="2" />
+                            <rect x="80" y="60" width="20" height="20" fill="#224079" rx="2" ry="2" />
+                            
+                            <rect x="0" y="80" width="20" height="20" fill="#c6d5ea" rx="2" ry="2" />
+                            <rect x="20" y="80" width="20" height="20" fill="#4a77ba" rx="2" ry="2" />
+                            <rect x="40" y="80" width="20" height="20" fill="#c6d5ea" rx="2" ry="2" />
+                            <rect x="60" y="80" width="20" height="20" fill="#224079" rx="2" ry="2" />
+                            <rect x="80" y="80" width="20" height="20" fill="#4a77ba" rx="2" ry="2" />
+                        </g>
+                        
+                        <text x="60" y="125" font-size="12" text-anchor="middle" fill="#64748b">[Samples × Features]</text>
+                    </g>
+                    
+                    <!-- DNA methylation matrix -->
+                    <g transform="translate(0, 160)">
+                        <text x="60" y="0" font-size="14" text-anchor="middle" fill="#76a975" font-weight="bold">DNA methylation</text>
+                        <rect x="10" y="10" width="100" height="100" fill="#ffffff" stroke="#76a975" stroke-width="1" rx="3" ry="3" filter="url(#shadow)" />
+                        
+                        <!-- Matrix cells -->
+                        <g transform="translate(10, 10)">
+                            <rect x="0" y="0" width="20" height="20" fill="#76a975" rx="2" ry="2" />
+                            <rect x="20" y="0" width="20" height="20" fill="#c8e6c7" rx="2" ry="2" />
+                            <rect x="40" y="0" width="20" height="20" fill="#377436" rx="2" ry="2" />
+                            <rect x="60" y="0" width="20" height="20" fill="#76a975" rx="2" ry="2" />
+                            <rect x="80" y="0" width="20" height="20" fill="#c8e6c7" rx="2" ry="2" />
+                            
+                            <rect x="0" y="20" width="20" height="20" fill="#c8e6c7" rx="2" ry="2" />
+                            <rect x="20" y="20" width="20" height="20" fill="#76a975" rx="2" ry="2" />
+                            <rect x="40" y="20" width="20" height="20" fill="#76a975" rx="2" ry="2" />
+                            <rect x="60" y="20" width="20" height="20" fill="#377436" rx="2" ry="2" />
+                            <rect x="80" y="20" width="20" height="20" fill="#c8e6c7" rx="2" ry="2" />
+                            
+                            <rect x="0" y="40" width="20" height="20" fill="#377436" rx="2" ry="2" />
+                            <rect x="20" y="40" width="20" height="20" fill="#c8e6c7" rx="2" ry="2" />
+                            <rect x="40" y="40" width="20" height="20" fill="#76a975" rx="2" ry="2" />
+                            <rect x="60" y="40" width="20" height="20" fill="#76a975" rx="2" ry="2" />
+                            <rect x="80" y="40" width="20" height="20" fill="#c8e6c7" rx="2" ry="2" />
+                            
+                            <rect x="0" y="60" width="20" height="20" fill="#76a975" rx="2" ry="2" />
+                            <rect x="20" y="60" width="20" height="20" fill="#377436" rx="2" ry="2" />
+                            <rect x="40" y="60" width="20" height="20" fill="#c8e6c7" rx="2" ry="2" />
+                            <rect x="60" y="60" width="20" height="20" fill="#76a975" rx="2" ry="2" />
+                            <rect x="80" y="60" width="20" height="20" fill="#377436" rx="2" ry="2" />
+                            
+                            <rect x="0" y="80" width="20" height="20" fill="#c8e6c7" rx="2" ry="2" />
+                            <rect x="20" y="80" width="20" height="20" fill="#76a975" rx="2" ry="2" />
+                            <rect x="40" y="80" width="20" height="20" fill="#377436" rx="2" ry="2" />
+                            <rect x="60" y="80" width="20" height="20" fill="#c8e6c7" rx="2" ry="2" />
+                            <rect x="80" y="80" width="20" height="20" fill="#76a975" rx="2" ry="2" />
+                        </g>
+                        
+                        <text x="60" y="125" font-size="12" text-anchor="middle" fill="#64748b">[Samples × Features]</text>
+                    </g>
+                    
+                    <!-- miRNA expression matrix -->
+                    <g transform="translate(0, 320)">
+                        <text x="60" y="0" font-size="14" text-anchor="middle" fill="#e67533" font-weight="bold">miRNA expression</text>
+                        <rect x="10" y="10" width="100" height="100" fill="#ffffff" stroke="#e67533" stroke-width="1" rx="3" ry="3" filter="url(#shadow)" />
+                        
+                        <!-- Matrix cells -->
+                        <g transform="translate(10, 10)">
+                            <rect x="0" y="0" width="20" height="20" fill="#e67533" rx="2" ry="2" />
+                            <rect x="20" y="0" width="20" height="20" fill="#f9e5d2" rx="2" ry="2" />
+                            <rect x="40" y="0" width="20" height="20" fill="#e67533" rx="2" ry="2" />
+                            <rect x="60" y="0" width="20" height="20" fill="#f9e5d2" rx="2" ry="2" />
+                            <rect x="80" y="0" width="20" height="20" fill="#a13f14" rx="2" ry="2" />
+                            
+                            <rect x="0" y="20" width="20" height="20" fill="#f9e5d2" rx="2" ry="2" />
+                            <rect x="20" y="20" width="20" height="20" fill="#e67533" rx="2" ry="2" />
+                            <rect x="40" y="20" width="20" height="20" fill="#a13f14" rx="2" ry="2" />
+                            <rect x="60" y="20" width="20" height="20" fill="#e67533" rx="2" ry="2" />
+                            <rect x="80" y="20" width="20" height="20" fill="#f9e5d2" rx="2" ry="2" />
+                            
+                            <rect x="0" y="40" width="20" height="20" fill="#a13f14" rx="2" ry="2" />
+                            <rect x="20" y="40" width="20" height="20" fill="#f9e5d2" rx="2" ry="2" />
+                            <rect x="40" y="40" width="20" height="20" fill="#e67533" rx="2" ry="2" />
+                            <rect x="60" y="40" width="20" height="20" fill="#a13f14" rx="2" ry="2" />
+                            <rect x="80" y="40" width="20" height="20" fill="#e67533" rx="2" ry="2" />
+                            
+                            <rect x="0" y="60" width="20" height="20" fill="#e67533" rx="2" ry="2" />
+                            <rect x="20" y="60" width="20" height="20" fill="#a13f14" rx="2" ry="2" />
+                            <rect x="40" y="60" width="20" height="20" fill="#f9e5d2" rx="2" ry="2" />
+                            <rect x="60" y="60" width="20" height="20" fill="#e67533" rx="2" ry="2" />
+                            <rect x="80" y="60" width="20" height="20" fill="#a13f14" rx="2" ry="2" />
+                            
+                            <rect x="0" y="80" width="20" height="20" fill="#f9e5d2" rx="2" ry="2" />
+                            <rect x="20" y="80" width="20" height="20" fill="#e67533" rx="2" ry="2" />
+                            <rect x="40" y="80" width="20" height="20" fill="#f9e5d2" rx="2" ry="2" />
+                            <rect x="60" y="80" width="20" height="20" fill="#a13f14" rx="2" ry="2" />
+                            <rect x="80" y="80" width="20" height="20" fill="#e67533" rx="2" ry="2" />
+                        </g>
+                        
+                        <text x="60" y="125" font-size="12" text-anchor="middle" fill="#64748b">[Samples × Features]</text>
+                    </g>
+                </g>
+                
+                <!-- 优化的箭头连接 - 数据到处理 -->
+                <g class="flow-arrows">
+                    <line x1="160" y1="130" x2="200" y2="110" stroke="#4a77ba" stroke-width="2" marker-end="url(#arrow-blue)" />
+                    <line x1="160" y1="130" x2="200" y2="150" stroke="#4a77ba" stroke-width="2" marker-end="url(#arrow-blue)" />
+                    
+                    <line x1="160" y1="290" x2="200" y2="270" stroke="#76a975" stroke-width="2" marker-end="url(#arrow-green)" />
+                    <line x1="160" y1="290" x2="200" y2="310" stroke="#76a975" stroke-width="2" marker-end="url(#arrow-green)" />
+                    
+                    <line x1="160" y1="450" x2="200" y2="430" stroke="#e67533" stroke-width="2" marker-end="url(#arrow-orange)" />
+                    <line x1="160" y1="450" x2="200" y2="470" stroke="#e67533" stroke-width="2" marker-end="url(#arrow-orange)" />
+                </g>
+                
+                <!-- Hyperedge groups and Heterogeneous Graph (optimized) -->
+                <g transform="translate(210, 80)">
+                    <!-- 超边组标题 -->
+                    <text x="70" y="0" font-size="14" text-anchor="middle" fill="#334155" font-weight="bold">Hyperedge groups</text>
+                    
+                    <!-- mRNA hypergraph -->
+                    <g transform="translate(10, 20)" class="interactive">
+                        <circle cx="60" cy="60" r="50" fill="none" stroke="#4a77ba" stroke-width="2" />
+                        
+                        <!-- Nodes and hyperedges -->
+                        <g>
+                            <circle cx="30" cy="30" r="8" fill="#c6d5ea" stroke="#224079" stroke-width="1" />
+                            <circle cx="80" cy="30" r="8" fill="#c6d5ea" stroke="#224079" stroke-width="1" />
+                            <circle cx="55" cy="70" r="8" fill="#c6d5ea" stroke="#224079" stroke-width="1" />
+                            <circle cx="90" cy="75" r="8" fill="#c6d5ea" stroke="#224079" stroke-width="1" />
+                            <circle cx="30" cy="90" r="8" fill="#c6d5ea" stroke="#224079" stroke-width="1" />
+                            
+                            <!-- Hyperedge -->
+                            <path d="M30,30 Q55,15 80,30 Q95,50 90,75 Q60,95 30,90 Z" fill="none" stroke="#4a77ba" stroke-width="1.5" stroke-dasharray="3,2" />
+                        </g>
+                        
+                        <text x="60" y="125" font-size="12" text-anchor="middle" fill="#64748b">mRNA hypergraph</text>
+                    </g>
+                    
+                    <!-- DNA methylation hypergraph -->
+                    <g transform="translate(10, 180)" class="interactive">
+                        <circle cx="60" cy="60" r="50" fill="none" stroke="#76a975" stroke-width="2" />
+                        
+                        <!-- Nodes and hyperedges -->
+                        <g>
+                            <circle cx="30" cy="30" r="8" fill="#c8e6c7" stroke="#377436" stroke-width="1" />
+                            <circle cx="80" cy="30" r="8" fill="#c8e6c7" stroke="#377436" stroke-width="1" />
+                            <circle cx="55" cy="70" r="8" fill="#c8e6c7" stroke="#377436" stroke-width="1" />
+                            <circle cx="90" cy="75" r="8" fill="#c8e6c7" stroke="#377436" stroke-width="1" />
+                            <circle cx="30" cy="90" r="8" fill="#c8e6c7" stroke="#377436" stroke-width="1" />
+                            
+                            <!-- Hyperedge -->
+                            <path d="M30,30 Q55,15 80,30 Q95,50 90,75 Q60,95 30,90 Z" fill="none" stroke="#76a975" stroke-width="1.5" stroke-dasharray="3,2" />
+                        </g>
+                        
+                        <text x="60" y="125" font-size="12" text-anchor="middle" fill="#64748b">DNA methylation hypergraph</text>
+                    </g>
+                    
+                    <!-- miRNA hypergraph -->
+                    <g transform="translate(10, 340)" class="interactive">
+                        <circle cx="60" cy="60" r="50" fill="none" stroke="#e67533" stroke-width="2" />
+                        
+                        <!-- Nodes and hyperedges -->
+                        <g>
+                            <circle cx="30" cy="30" r="8" fill="#f9e5d2" stroke="#a13f14" stroke-width="1" />
+                            <circle cx="80" cy="30" r="8" fill="#f9e5d2" stroke="#a13f14" stroke-width="1" />
+                            <circle cx="55" cy="70" r="8" fill="#f9e5d2" stroke="#a13f14" stroke-width="1" />
+                            <circle cx="90" cy="75" r="8" fill="#f9e5d2" stroke="#a13f14" stroke-width="1" />
+                            <circle cx="30" cy="90" r="8" fill="#f9e5d2" stroke="#a13f14" stroke-width="1" />
+                            
+                            <!-- Hyperedge -->
+                            <path d="M30,30 Q55,15 80,30 Q95,50 90,75 Q60,95 30,90 Z" fill="none" stroke="#e67533" stroke-width="1.5" stroke-dasharray="3,2" />
+                        </g>
+                        
+                        <text x="60" y="125" font-size="12" text-anchor="middle" fill="#64748b">miRNA hypergraph</text>
+                    </g>
+                    
+                    <!-- 异构图标题 -->
+                    <text x="190" y="0" font-size="14" text-anchor="middle" fill="#334155" font-weight="bold">Heterogeneous Graph</text>
+                    
+                    <!-- mRNA heterogeneous graph -->
+                    <g transform="translate(140, 20)" class="interactive">
+                        <rect x="10" y="10" width="120" height="80" fill="none" stroke="#4a77ba" stroke-width="2" stroke-dasharray="5,2" rx="5" ry="5" />
+                        
+                        <!-- Sample nodes -->
+                        <circle cx="30" cy="30" r="8" fill="#c6d5ea" stroke="#224079" stroke-width="1" />
+                        <circle cx="70" cy="35" r="8" fill="#c6d5ea" stroke="#224079" stroke-width="1" />
+                        <circle cx="110" cy="30" r="8" fill="#c6d5ea" stroke="#224079" stroke-width="1" />
+                        
+                        <!-- Gene nodes -->
+                        <circle cx="40" cy="70" r="6" fill="#224079" stroke="#000" stroke-width="1" />
+                        <circle cx="70" cy="75" r="6" fill="#224079" stroke="#000" stroke-width="1" />
+                        <circle cx="100" cy="70" r="6" fill="#224079" stroke="#000" stroke-width="1" />
+                        
+                        <!-- Edges -->
+                        <line x1="30" y1="30" x2="70" y2="35" stroke="#4a77ba" stroke-width="1.5" />
+                        <line x1="70" y1="35" x2="110" y2="30" stroke="#4a77ba" stroke-width="1.5" />
+                        <line x1="30" y1="30" x2="40" y2="70" stroke="#4a77ba" stroke-width="1" stroke-dasharray="3,2" />
+                        <line x1="70" y1="35" x2="70" y2="75" stroke="#4a77ba" stroke-width="1" stroke-dasharray="3,2" />
+                        <line x1="110" y1="30" x2="100" y2="70" stroke="#4a77ba" stroke-width="1" stroke-dasharray="3,2" />
+                        
+                        <text x="65" y="105" font-size="12" text-anchor="middle" fill="#64748b">MOHGCN_mRNA</text>
+                    </g>
+                    
+                    <!-- DNA methylation heterogeneous graph -->
+                    <g transform="translate(140, 180)" class="interactive">
+                        <rect x="10" y="10" width="120" height="80" fill="none" stroke="#76a975" stroke-width="2" stroke-dasharray="5,2" rx="5" ry="5" />
+                        
+                        <!-- Sample nodes -->
+                        <circle cx="30" cy="30" r="8" fill="#c8e6c7" stroke="#377436" stroke-width="1" />
+                        <circle cx="70" cy="35" r="8" fill="#c8e6c7" stroke="#377436" stroke-width="1" />
+                        <circle cx="110" cy="30" r="8" fill="#c8e6c7" stroke="#377436" stroke-width="1" />
+                        
+                        <!-- Gene nodes -->
+                        <circle cx="40" cy="70" r="6" fill="#377436" stroke="#000" stroke-width="1" />
+                        <circle cx="70" cy="75" r="6" fill="#377436" stroke="#000" stroke-width="1" />
+                        <circle cx="100" cy="70" r="6" fill="#377436" stroke="#000" stroke-width="1" />
+                        
+                        <!-- Edges -->
+                        <line x1="30" y1="30" x2="70" y2="35" stroke="#76a975" stroke-width="1.5" />
+                        <line x1="70" y1="35" x2="110" y2="30" stroke="#76a975" stroke-width="1.5" />
+                        <line x1="30" y1="30" x2="40" y2="70" stroke="#76a975" stroke-width="1" stroke-dasharray="3,2" />
+                        <line x1="70" y1="35" x2="70" y2="75" stroke="#76a975" stroke-width="1" stroke-dasharray="3,2" />
+                        <line x1="110" y1="30" x2="100" y2="70" stroke="#76a975" stroke-width="1" stroke-dasharray="3,2" />
+                        
+                        <text x="65" y="105" font-size="12" text-anchor="middle" fill="#64748b">MOHGCN_meth</text>
+                    </g>
+                    
+                    <!-- miRNA heterogeneous graph -->
+                    <g transform="translate(140, 340)" class="interactive">
+                        <rect x="10" y="10" width="120" height="80" fill="none" stroke="#e67533" stroke-width="2" stroke-dasharray="5,2" rx="5" ry="5" />
+                        
+                        <!-- Sample nodes -->
+                        <circle cx="30" cy="30" r="8" fill="#f9e5d2" stroke="#a13f14" stroke-width="1" />
+                        <circle cx="70" cy="35" r="8" fill="#f9e5d2" stroke="#a13f14" stroke-width="1" />
+                        <circle cx="110" cy="30" r="8" fill="#f9e5d2" stroke="#a13f14" stroke-width="1" />
+                        
+                        <!-- Gene nodes -->
+                        <circle cx="40" cy="70" r="6" fill="#a13f14" stroke="#000" stroke-width="1" />
+                        <circle cx="70" cy="75" r="6" fill="#a13f14" stroke="#000" stroke-width="1" />
+                        <circle cx="100" cy="70" r="6" fill="#a13f14" stroke="#000" stroke-width="1" />
+                        
+                        <!-- Edges -->
+                        <line x1="30" y1="30" x2="70" y2="35" stroke="#e67533" stroke-width="1.5" />
+                        <line x1="70" y1="35" x2="110" y2="30" stroke="#e67533" stroke-width="1.5" />
+                        <line x1="30" y1="30" x2="40" y2="70" stroke="#e67533" stroke-width="1" stroke-dasharray="3,2" />
+                        <line x1="70" y1="35" x2="70" y2="75" stroke="#e67533" stroke-width="1" stroke-dasharray="3,2" />
+                        <line x1="110" y1="30" x2="100" y2="70" stroke="#e67533" stroke-width="1" stroke-dasharray="3,2" />
+                        
+                        <text x="65" y="105" font-size="12" text-anchor="middle" fill="#64748b">MOHGCN_miRNA</text>
+                    </g>
+                    
+                    <!-- 融合超边组高亮效果优化 -->
+                    <g transform="translate(70, 200)">
+                        <path d="M-40,-120 Q40,-70 0,0 Q-20,70 0,140 Q80,70 80,-120 Z" 
+                              fill="none" stroke="#7e22ce" stroke-width="2.5" stroke-dasharray="5,3" />
+                        <text x="20" y="20" font-size="14" font-weight="bold" fill="#7e22ce" text-anchor="middle">
+                            Fused hyperedge group
+                        </text>
+                    </g>
+                </g>
+                
+                <!-- 改进的连接到编码器的箭头 -->
+                <g class="connections-to-encoder">
+                    <!-- 从单组学超图到编码器的连接 -->
+                    <line x1="400" y1="130" x2="490" y2="130" stroke="#4a77ba" stroke-width="2" marker-end="url(#arrow-blue)" />
+                    <line x1="400" y1="290" x2="490" y2="290" stroke="#76a975" stroke-width="2" marker-end="url(#arrow-green)" />
+                    <line x1="400" y1="450" x2="490" y2="450" stroke="#e67533" stroke-width="2" marker-end="url(#arrow-orange)" />
+
+                    <!-- 从异构图到编码器的连接 -->
+                    <line x1="470" y1="150" x2="500" y2="140" stroke="#4a77ba" stroke-width="2" stroke-dasharray="2,2" marker-end="url(#arrow-blue)" />
+                    <line x1="470" y1="310" x2="500" y2="300" stroke="#76a975" stroke-width="2" stroke-dasharray="2,2" marker-end="url(#arrow-green)" />
+                    <line x1="470" y1="470" x2="500" y2="460" stroke="#e67533" stroke-width="2" stroke-dasharray="2,2" marker-end="url(#arrow-orange)" />
+
+                    <!-- 从融合超边组到各编码器的连接 -->
+                    <path d="M350,280 C390,220 430,150 490,130" stroke="#7e22ce" stroke-width="2" stroke-dasharray="5,3" marker-end="url(#arrow-purple)" fill="none" />
+                    <text x="400" y="170" font-size="12" fill="#7e22ce" transform="rotate(-25, 400, 170)">Fused hypergraph</text>
+
+                    <path d="M350,280 C370,290 430,290 490,290" stroke="#7e22ce" stroke-width="2" stroke-dasharray="5,3" marker-end="url(#arrow-purple)" fill="none" />
+                    <text x="400" y="270" font-size="12" fill="#7e22ce">Fused hypergraph</text>
+
+                    <path d="M350,280 C370,350 430,430 490,450" stroke="#7e22ce" stroke-width="2" stroke-dasharray="5,3" marker-end="url(#arrow-purple)" fill="none" />
+                    <text x="400" y="380" font-size="12" fill="#7e22ce" transform="rotate(25, 400, 380)">Fused hypergraph</text>
+                </g>
+                
+                <!-- Multi-Omics Fusion Encoding (美化编码器) -->
+                <g transform="translate(490, 80)">
+                    <!-- mRNA encoder -->
+                    <g transform="translate(10, 35)" class="interactive">
+                        <rect x="0" y="0" width="140" height="80" rx="8" ry="8" fill="#4a77ba" stroke="#224079" stroke-width="2" filter="url(#shadow)" />
+                        
+                        <!-- 内部分区 -->
+                        <line x1="0" y1="25" x2="140" y2="25" stroke="white" stroke-width="1" />
+                        <line x1="0" y1="50" x2="140" y2="50" stroke="white" stroke-width="1" />
+                        
+                        <text x="70" y="17" font-size="11" fill="white" text-anchor="middle" font-weight="bold">HG + HeterG + FusedHG</text>
+                        <text x="70" y="42" font-size="15" font-weight="bold" fill="white" text-anchor="middle">MOHE-MOHGCN</text>
+                        <text x="70" y="67" font-size="13" fill="white" text-anchor="middle">mRNA</text>
+                        <text x="70" y="95" font-size="12" text-anchor="middle" fill="#64748b">[Samples × 200]</text>
+                    </g>
+                    
+                    <!-- DNA methylation encoder -->
+                    <g transform="translate(10, 195)" class="interactive">
+                        <rect x="0" y="0" width="140" height="80" rx="8" ry="8" fill="#76a975" stroke="#377436" stroke-width="2" filter="url(#shadow)" />
+                        
+                        <!-- 内部分区 -->
+                        <line x1="0" y1="25" x2="140" y2="25" stroke="white" stroke-width="1" />
+                        <line x1="0" y1="50" x2="140" y2="50" stroke="white" stroke-width="1" />
+                        
+                        <text x="70" y="17" font-size="11" fill="white" text-anchor="middle" font-weight="bold">HG + HeterG + FusedHG</text>
+                        <text x="70" y="42" font-size="15" font-weight="bold" fill="white" text-anchor="middle">MOHE-MOHGCN</text>
+                        <text x="70" y="67" font-size="13" fill="white" text-anchor="middle">meth</text>
+                        <text x="70" y="95" font-size="12" text-anchor="middle" fill="#64748b">[Samples × 200]</text>
+                    </g>
+                    
+                    <!-- miRNA encoder -->
+                    <g transform="translate(10, 355)" class="interactive">
+                        <rect x="0" y="0" width="140" height="80" rx="8" ry="8" fill="#e67533" stroke="#a13f14" stroke-width="2" filter="url(#shadow)" />
+                        
+                        <!-- 内部分区 -->
+                        <line x1="0" y1="25" x2="140" y2="25" stroke="white" stroke-width="1" />
+                        <line x1="0" y1="50" x2="140" y2="50" stroke="white" stroke-width="1" />
+                        
+                        <text x="70" y="17" font-size="11" fill="white" text-anchor="middle" font-weight="bold">HG + HeterG + FusedHG</text>
+                        <text x="70" y="42" font-size="15" font-weight="bold" fill="white" text-anchor="middle">MOHE-MOHGCN</text>
+                        <text x="70" y="67" font-size="13" fill="white" text-anchor="middle">miRNA</text>
+                        <text x="70" y="95" font-size="12" text-anchor="middle" fill="#64748b">[Samples × 200]</text>
+                    </g>
+                </g>
+                
+                <!-- 从编码器到特征分布的优化箭头 -->
+                <line x1="650" y1="130" x2="700" y2="130" stroke="#4a77ba" stroke-width="2" marker-end="url(#arrow-blue)" />
+                <line x1="650" y1="290" x2="700" y2="290" stroke="#76a975" stroke-width="2" marker-end="url(#arrow-green)" />
+                <line x1="650" y1="450" x2="700" y2="450" stroke="#e67533" stroke-width="2" marker-end="url(#arrow-orange)" />
+                
+                <!-- Feature Distribution (美化特征分布) -->
+                <g transform="translate(700, 80)">
+                    <!-- mRNA feature distribution -->
+                    <g transform="translate(0, 30)" class="interactive">
+                        <text x="60" y="0" font-size="14" text-anchor="middle" fill="#4a77ba" font-weight="bold">Feature distribution</text>
+                        <rect x="10" y="20" width="100" height="100" fill="#ffffff" stroke="#4a77ba" stroke-width="1.5" rx="3" ry="3" filter="url(#shadow)" />
+                        
+                        <!-- Feature matrix cells -->
+                        <g transform="translate(10, 20)">
+                            <rect x="0" y="0" width="33" height="33" fill="#224079" rx="2" ry="2" />
+                            <rect x="33" y="0" width="33" height="33" fill="#4a77ba" rx="2" ry="2" />
+                            <rect x="66" y="0" width="33" height="33" fill="#c6d5ea" rx="2" ry="2" />
+                            
+                            <rect x="0" y="33" width="33" height="33" fill="#4a77ba" rx="2" ry="2" />
+                            <rect x="33" y="33" width="33" height="33" fill="#224079" rx="2" ry="2" />
+                            <rect x="66" y="33" width="33" height="33" fill="#4a77ba" rx="2" ry="2" />
+                            
+                            <rect x="0" y="66" width="33" height="33" fill="#c6d5ea" rx="2" ry="2" />
+                            <rect x="33" y="66" width="33" height="33" fill="#4a77ba" rx="2" ry="2" />
+                            <rect x="66" y="66" width="33" height="33" fill="#224079" rx="2" ry="2" />
+                        </g>
+                        
+                        <text x="60" y="135" font-size="12" text-anchor="middle" fill="#64748b">[Samples × 200]</text>
+                    </g>
+                    
+                    <!-- DNA methylation feature distribution -->
+                    <g transform="translate(0, 190)" class="interactive">
+                        <text x="60" y="0" font-size="14" text-anchor="middle" fill="#76a975" font-weight="bold">Feature distribution</text>
+                        <rect x="10" y="20" width="100" height="100" fill="#ffffff" stroke="#76a975" stroke-width="1.5" rx="3" ry="3" filter="url(#shadow)" />
+                        
+                        <!-- Feature matrix cells -->
+                        <g transform="translate(10, 20)">
+                            <rect x="0" y="0" width="33" height="33" fill="#377436" rx="2" ry="2" />
+                            <rect x="33" y="0" width="33" height="33" fill="#76a975" rx="2" ry="2" />
+                            <rect x="66" y="0" width="33" height="33" fill="#c8e6c7" rx="2" ry="2" />
+                            
+                            <rect x="0" y="33" width="33" height="33" fill="#76a975" rx="2" ry="2" />
+                            <rect x="33" y="33" width="33" height="33" fill="#377436" rx="2" ry="2" />
+                            <rect x="66" y="33" width="33" height="33" fill="#c8e6c7" rx="2" ry="2" />
+                            
+                            <rect x="0" y="66" width="33" height="33" fill="#c8e6c7" rx="2" ry="2" />
+                            <rect x="33" y="66" width="33" height="33" fill="#76a975" rx="2" ry="2" />
+                            <rect x="66" y="66" width="33" height="33" fill="#377436" rx="2" ry="2" />
+                        </g>
+                        
+                        <text x="60" y="135" font-size="12" text-anchor="middle" fill="#64748b">[Samples × 200]</text>
+                    </g>
+                    
+                    <!-- miRNA feature distribution -->
+                    <g transform="translate(0, 350)" class="interactive">
+                        <text x="60" y="0" font-size="14" text-anchor="middle" fill="#e67533" font-weight="bold">Feature distribution</text>
+                        <rect x="10" y="20" width="100" height="100" fill="#ffffff" stroke="#e67533" stroke-width="1.5" rx="3" ry="3" filter="url(#shadow)" />
+                        
+                        <!-- Feature matrix cells -->
+                        <g transform="translate(10, 20)">
+                            <rect x="0" y="0" width="33" height="33" fill="#a13f14" rx="2" ry="2" />
+                            <rect x="33" y="0" width="33" height="33" fill="#e67533" rx="2" ry="2" />
+                            <rect x="66" y="0" width="33" height="33" fill="#f9e5d2" rx="2" ry="2" />
+                            
+                            <rect x="0" y="33" width="33" height="33" fill="#e67533" rx="2" ry="2" />
+                            <rect x="33" y="33" width="33" height="33" fill="#a13f14" rx="2" ry="2" />
+                            <rect x="66" y="33" width="33" height="33" fill="#f9e5d2" rx="2" ry="2" />
+                            
+                            <rect x="0" y="66" width="33" height="33" fill="#f9e5d2" rx="2" ry="2" />
+                            <rect x="33" y="66" width="33" height="33" fill="#e67533" rx="2" ry="2" />
+                            <rect x="66" y="66" width="33" height="33" fill="#a13f14" rx="2" ry="2" />
+                        </g>
+                        
+                        <text x="60" y="135" font-size="12" text-anchor="middle" fill="#64748b">[Samples × 200]</text>
+                    </g>
+                </g>
+                
+                <!-- 从特征分布到自注意力的优化箭头 -->
+                <path d="M820" y1="130" x2="870" y2="210" stroke="#4a77ba" stroke-width="2" marker-end="url(#arrow-blue)" fill="none" />
+                <line x1="820" y1="290" x2="870" y2="290" stroke="#76a975" stroke-width="2" marker-end="url(#arrow-green)" />
+                <path d="M820" y1="450" x2="870" y2="370" stroke="#e67533" stroke-width="2" marker-end="url(#arrow-orange)" fill="none" />
+                
+                <!-- Multi-Omics Self-Attention (美化自注意力模块) -->
+                <g transform="translate(880, 170)" class="interactive">
+                    <text x="160" y="0" font-size="16" font-weight="bold" text-anchor="middle" fill="#334155">Multi-Omics Self-Attention</text>
+                    
+                    <!-- 3D tensor representation for wv, wk, wq -->
+                    <g transform="translate(20, 35)">
+                        <!-- 标签 -->
+                        <text x="40" y="0" font-size="12" font-weight="bold" text-anchor="middle" fill="#334155">wv</text>
+                        <text x="140" y="0" font-size="12" font-weight="bold" text-anchor="middle" fill="#334155">wk</text>
+                        <text x="240" y="0" font-size="12" font-weight="bold" text-anchor="middle" fill="#334155">wq</text>
+                        
+                        <!-- 3D cubes for tensors -->
+                        <g transform="translate(0, 20)">
+                            <!-- V tensor -->
+                            <g transform="rotate(15) skewX(-15) scale(1, 0.8)">
+                                <rect x="0" y="0" width="80" height="80" fill="#0369a1" fill-opacity="0.7" stroke="#000" filter="url(#shadow)" />
+                                <polygon points="0,0 80,0 100,-20 20,-20" fill="#0369a1" fill-opacity="0.5" stroke="#000" />
+                                <polygon points="80,0 80,80 100,60 100,-20" fill="#0369a1" fill-opacity="0.6" stroke="#000" />
+                                <text x="40" y="40" font-size="18" fill="white" font-weight="bold" text-anchor="middle" transform="rotate(-15) skewX(15) scale(1, 1.2)">V</text>
+                            </g>
+                            
+                            <!-- K tensor -->
+                            <g transform="translate(100, 0)">
+                                <g transform="rotate(15) skewX(-15) scale(1, 0.8)">
+                                    <rect x="0" y="0" width="80" height="80" fill="#0369a1" fill-opacity="0.7" stroke="#000" filter="url(#shadow)" />
+                                    <polygon points="0,0 80,0 100,-20 20,-20" fill="#0369a1" fill-opacity="0.5" stroke="#000" />
+                                    <polygon points="80,0 80,80 100,60 100,-20" fill="#0369a1" fill-opacity="0.6" stroke="#000" />
+                                    <text x="40" y="40" font-size="18" fill="white" font-weight="bold" text-anchor="middle" transform="rotate(-15) skewX(15) scale(1, 1.2)">K</text>
+                                </g>
+                            </g>
+                            
+                            <!-- Q tensor -->
+                            <g transform="translate(200, 0)">
+                                <g transform="rotate(15) skewX(-15) scale(1, 0.8)">
+                                    <rect x="0" y="0" width="80" height="80" fill="#0369a1" fill-opacity="0.7" stroke="#000" filter="url(#shadow)" />
+                                    <polygon points="0,0 80,0 100,-20 20,-20" fill="#0369a1" fill-opacity="0.5" stroke="#000" />
+                                    <polygon points="80,0 80,80 100,60 100,-20" fill="#0369a1" fill-opacity="0.6" stroke="#000" />
+                                    <text x="40" y="40" font-size="18" fill="white" font-weight="bold" text-anchor="middle" transform="rotate(-15) skewX(15) scale(1, 1.2)">Q</text>
+                                </g>
+                            </g>
+                        </g>
+                    </g>
+                    
+                    <!-- Attention matrix -->
+                    <g transform="translate(120, 170)">
+                        <text x="50" y="0" font-size="14" font-weight="bold" text-anchor="middle" fill="#334155">Attention matrics</text>
+                        <rect x="0" y="15" width="100" height="100" fill="#ffffff" stroke="#0369a1" stroke-width="1.5" rx="3" ry="3" filter="url(#shadow)" />
+                        
+                        <!-- Attention values -->
+                        <g transform="translate(0, 15)">
+                            <rect x="0" y="0" width="33" height="33" fill="#0369a1" fill-opacity="0.75" rx="2" ry="2" />
+                            <rect x="33" y="0" width="33" height="33" fill="#0369a1" fill-opacity="0.92" rx="2" ry="2" />
+                            <rect x="66" y="0" width="33" height="33" fill="#0369a1" fill-opacity="0.63" rx="2" ry="2" />
+                            
+                            <rect x="0" y="33" width="33" height="33" fill="#0369a1" fill-opacity="0.83" rx="2" ry="2" />
+                            <rect x="33" y="33" width="33" height="33" fill="#0369a1" fill-opacity="0.68" rx="2" ry="2" />
+                            <rect x="66" y="33" width="33" height="33" fill="#0369a1" fill-opacity="0.84" rx="2" ry="2" />
+                            
+                            <rect x="0" y="66" width="33" height="33" fill="#0369a1" fill-opacity="0.57" rx="2" ry="2" />
+                            <rect x="33" y="66" width="33" height="33" fill="#0369a1" fill-opacity="0.78" rx="2" ry="2" />
+                            <rect x="66" y="66" width="33" height="33" fill="#0369a1" fill-opacity="0.71" rx="2" ry="2" />
+                            
+                            <!-- Attention values text -->
+                            <text x="16.5" y="20" font-size="12" fill="white" text-anchor="middle" font-weight="bold">0.75</text>
+                            <text x="49.5" y="20" font-size="12" fill="white" text-anchor="middle" font-weight="bold">0.92</text>
+                            <text x="82.5" y="20" font-size="12" fill="white" text-anchor="middle" font-weight="bold">0.63</text>
+                            
+                            <text x="16.5" y="53" font-size="12" fill="white" text-anchor="middle" font-weight="bold">0.83</text>
+                            <text x="49.5" y="53" font-size="12" fill="white" text-anchor="middle" font-weight="bold">0.68</text>
+                            <text x="82.5" y="53" font-size="12" fill="white" text-anchor="middle" font-weight="bold">0.84</text>
+                            
+                            <text x="16.5" y="86" font-size="12" fill="white" text-anchor="middle" font-weight="bold">0.57</text>
+                            <text x="49.5" y="86" font-size="12" fill="white" text-anchor="middle" font-weight="bold">0.78</text>
+                            <text x="82.5" y="86" font-size="12" fill="white" text-anchor="middle" font-weight="bold">0.71</text>
+                        </g>
+                    </g>
+                </g>
+                
+                <!-- 从自注意力到TCP的优化箭头 -->
+                <line x1="1210" y1="290" x2="1250" y2="290" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)" />
+                
+                <!-- TCP Module (美化TCP模块) -->
+                <g transform="translate(1260, 190)" class="interactive">
+                    <text x="60" y="0" font-size="16" font-weight="bold" text-anchor="middle" fill="#334155">TCP</text>
+                    <text x="60" y="20" font-size="12" text-anchor="middle" fill="#64748b">Tensor Correlation Pooling</text>
+                    
+                    <!-- TCP module box -->
+                    <rect x="0" y="40" width="120" height="100" rx="10" ry="10" fill="#f9d6ad" stroke="#e67533" stroke-width="2" filter="url(#shadow)" />
+                    
+                    <!-- Cross-omics tensor mini-icon -->
+                    <g transform="translate(30, 55)">
+                        <g transform="rotate(15) skewX(-15) scale(0.6, 0.5)">
+                            <rect x="0" y="0" width="80" height="80" fill="url(#fusion-gradient)" fill-opacity="0.7" stroke="#000" />
+                            <polygon points="0,0 80,0 100,-20 20,-20" fill="url(#fusion-gradient)" fill-opacity="0.5" stroke="#000" />
+                            <polygon points="80,0 80,80 100,60 100,-20" fill="url(#fusion-gradient)" fill-opacity="0.6" stroke="#000" />
+                            <text x="40" y="40" font-size="14" fill="white" font-weight="bold" text-anchor="middle" transform="rotate(-15) skewX(15) scale(1, 1.2)">TCP</text>
+                        </g>
+                    </g>
+                    
+                    <!-- Confidence weights with improved style -->
+                    <g transform="translate(10, 100)">
+                        <rect x="0" y="0" width="30" height="20" fill="#4a77ba" rx="5" ry="5" />
+                        <text x="15" y="14" font-size="11" fill="white" text-anchor="middle" font-weight="bold">0.85</text>
+                        
+                        <rect x="40" y="0" width="30" height="20" fill="#76a975" rx="5" ry="5" />
+                        <text x="55" y="14" font-size="11" fill="white" text-anchor="middle" font-weight="bold">0.72</text>
+                        
+                        <rect x="80" y="0" width="30" height="20" fill="#e67533" rx="5" ry="5" />
+                        <text x="95" y="14" font-size="11" fill="white" text-anchor="middle" font-weight="bold">0.78</text>
+                    </g>
+                    
+                    <text x="60" y="155" font-size="12" text-anchor="middle" fill="#64748b">Cross-omics discovery tensor</text>
+                </g>
+                
+                <!-- 从TCP到最终预测的优化箭头 -->
+                <line x1="1390" y1="290" x2="1430" y2="290" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)" />
+                
+                <!-- Final Prediction (美化最终预测) -->
+                <g transform="translate(1440, 190)" class="interactive">
+                    <text x="60" y="0" font-size="16" font-weight="bold" text-anchor="middle" fill="#334155">Final label prediction</text>
+                    
+                    <!-- Final prediction box with improved style -->
+                    <rect x="0" y="40" width="120" height="160" rx="12" ry="12" fill="url(#fusion-gradient)" filter="url(#shadow)" />
+                    <text x="60" y="120" font-size="16" font-weight="bold" fill="white" text-anchor="middle">Final label</text>
+                    <text x="60" y="145" font-size="16" font-weight="bold" fill="white" text-anchor="middle">prediction</text>
+                    
+                    <text x="60" y="215" font-size="12" text-anchor="middle" fill="#64748b">[Samples × Classes]</text>
+                </g>
+                
+                <!-- 图例优化 -->
+                <g transform="translate(60, 550)">
+                    <rect x="0" y="0" width="1480" height="40" rx="5" ry="5" fill="#f1f5f9" stroke="#e2e8f0" />
+                    
+                    <line x1="20" y1="20" x2="50" y2="20" stroke="#4a77ba" stroke-width="2" />
+                    <text x="60" y="24" font-size="12" fill="#334155">Omics-specific hypergraph</text>
+                    
+                    <line x1="260" y1="20" x2="290" y2="20" stroke="#4a77ba" stroke-width="2" stroke-dasharray="2,2" />
+                    <text x="300" y="24" font-size="12" fill="#334155">Heterogeneous graph</text>
+                    
+                    <line x1="500" y1="20" x2="530" y2="20" stroke="#7e22ce" stroke-width="2" stroke-dasharray="5,3" />
+                    <text x="540" y="24" font-size="12" fill="#334155">Fused hypergraph</text>
+                    
+                    <rect x="700" y="15" width="10" height="10" fill="#4a77ba" rx="2" ry="2" />
+                    <text x="720" y="24" font-size="12" fill="#334155">mRNA</text>
+                    
+                    <rect x="800" y="15" width="10" height="10" fill="#76a975" rx="2" ry="2" />
+                    <text x="820" y="24" font-size="12" fill="#334155">DNA methylation</text>
+                    
+                    <rect x="960" y="15" width="10" height="10" fill="#e67533" rx="2" ry="2" />
+                    <text x="980" y="24" font-size="12" fill="#334155">miRNA</text>
+                    
+                    <rect x="1080" y="15" width="10" height="10" fill="url(#fusion-gradient)" rx="2" ry="2" />
+                    <text x="1100" y="24" font-size="12" fill="#334155">Fusion</text>
+                </g>
+            </svg>
+        </div>
+        
+        <div class="model-description">
+            <h2>Model Architecture Overview</h2>
+            <p>The MOHGCN-MOHE multi-omics fusion model integrates data from multiple genomic modalities through a novel approach that combines heterogeneous graph neural networks and hypergraph neural networks. The architecture consists of these key components:</p>
+            
+            <ul>
+                <li><strong>Multi-Omics Data Input:</strong> Processes raw data matrices from mRNA expression, DNA methylation, and miRNA expression.</li>
+                
+                <li><strong>Data Processing:</strong> Constructs two complementary graph structures:
+                    <ul>
+                        <li><em>Hyperedge Groups:</em> Forms hypergraphs for each omics type with a special fused hyperedge group connecting information across modalities.</li>
+                        <li><em>Heterogeneous Graphs:</em> Builds heterogeneous graphs capturing relationships between samples and features/genes.</li>
+                    </ul>
+                </li>
+                
+                <li><strong>Multi-Omics Fusion Encoding:</strong> Unique encoders (MOHE-MOHGCN) that simultaneously leverage three input types:
+                    <ul>
+                        <li>Omics-specific hypergraphs capturing high-order relationships</li>
+                        <li>Heterogeneous graphs capturing sample-feature interactions</li>
+                        <li>Fused hypergraph enabling cross-omics information sharing</li>
+                    </ul>
+                </li>
+                
+                <li><strong>Feature Distribution:</strong> Encoded features represent omics-specific patterns enhanced by both graph structures.</li>
+                
+                <li><strong>Multi-Omics Self-Attention:</strong> Applies multi-head attention mechanism to integrate information across omics types.</li>
+                
+                <li><strong>Tensor Correlation Pooling (TCP):</strong> Learns confidence weights for each omics modality based on task relevance.</li>
+                
+                <li><strong>Final Label Prediction:</strong> Produces classification outputs for clinical applications.</li>
+            </ul>
+        </div>
+    </div>
+    
+    <script>
+        // 简单的交互效果
+        document.addEventListener('DOMContentLoaded', function() {
+            const interactiveElements = document.querySelectorAll('.interactive');
+            
+            interactiveElements.forEach(element => {
+                element.addEventListener('mouseenter', function() {
+                    this.style.filter = 'brightness(1.1)';
+                    this.style.transform = 'scale(1.02)';
+                    this.style.transition = 'all 0.2s ease';
+                });
+                
+                element.addEventListener('mouseleave', function() {
+                    this.style.filter = '';
+                    this.style.transform = '';
+                });
+            });
+            
+            // 添加分段式加载动画
+            const sections = document.querySelectorAll('.section-background rect');
+            sections.forEach((section, index) => {
+                section.style.animation = `fadeIn 0.5s ease ${index * 0.1}s forwards`;
+                section.style.opacity = '0';
+            });
+        });
+    </script>
+</body>
+</html>
